@@ -1,5 +1,5 @@
-name    := """spray-spark-react"""
-version := "4.0-SNAPSHOT"
+name    := """chiffres-et-lettres"""
+version := "1.0"
 
 licenses := Seq("Apache-2.0" -> url("http://opensource.org/licenses/Apache-2.0"))
 
