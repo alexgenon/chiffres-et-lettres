@@ -40,16 +40,15 @@
   requirejs.onError = function (err) {
     console.log(err);
   };
-
-/*  require(['jsx!app'], function(App){
-    console.log('initializing app');
-    App.init();
-
-  });*/
   
   require(['jsx!cbe_app'], function(CbeApp) {
-	  console.log('init compte est bon app');
+	  console.log('init Compte est bon app');
 	  CbeApp.init();
+  });
+  
+  require(['jsx!mpl_app'], function(MplApp) {
+	console.log('init Mot plus Long App');
+	MplApp.init();
   });
 
 })(requirejs);

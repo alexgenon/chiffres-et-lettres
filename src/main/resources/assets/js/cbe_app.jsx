@@ -11,7 +11,7 @@ define(function(require) {
   		
   	return {goal:goal, input:inputs};
   }
-
+  
   var React = require('react');
 
   var CbeApp = React.createClass({
@@ -95,7 +95,7 @@ define(function(require) {
 		  			<h2>Solution</h2>
 		  			<div className="solution">
 		  				{this.props.solution.map(function(s) {
-		  					return (<SolStep step={s}/>);
+		  					return (<SolStep key={s} step={s}/>);
 		  				})}
 	  				</div>
 				</div>
