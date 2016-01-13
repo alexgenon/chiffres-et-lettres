@@ -41,10 +41,15 @@
     console.log(err);
   };
 
-  require(['jsx!app'], function(App){
+/*  require(['jsx!app'], function(App){
     console.log('initializing app');
     App.init();
 
+  });*/
+  
+  require(['jsx!cbe_app'], function(CbeApp) {
+	  console.log('init compte est bon app');
+	  CbeApp.init();
   });
 
 })(requirejs);

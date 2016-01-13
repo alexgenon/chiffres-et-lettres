@@ -41,6 +41,13 @@ class CompteEstBonApi(implicit val actorSystem: ActorSystem) extends Directives 
   }
 
   val routes = pathPrefix("ceb") {
-    solve
+    solve ~ 
+    pathEnd {
+      get {
+        complete{
+          html.ceb()
+        }
+      }
+    }
   }
 }

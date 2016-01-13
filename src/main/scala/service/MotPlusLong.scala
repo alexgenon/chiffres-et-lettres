@@ -53,7 +53,7 @@ class MotPlusLongActor extends Actor with ActorLogging with MPLSolver {
   }
   def receive: Receive = {
     case Input(c) => {
-      log.info("""Received $c as input""")
+      log.info(s"""Received $c as input""")
       sender ! solve(c) 
     }
     case ReIndex() => {
