@@ -1,9 +1,7 @@
 package core
 
 import akka.actor.{Actor, Props}
-import service.GodzillaActor
-import service.CompteEstBonActor
-import service.MotPlusLongActor
+import service.{GodzillaActor,CompteEstBonActor,MotPlusLongActor,MotPlusLongLoggerActor}
 
 case class Startup()
 case class Shutdown()
@@ -19,6 +17,7 @@ class ApplicationActor extends Actor {
       context.actorOf(Props[GodzillaActor], "godzilla")
       context.actorOf(Props[CompteEstBonActor],"cebsolver")
       context.actorOf(Props[MotPlusLongActor],"mplsolver")
+      context.actorOf(Props[MotPlusLongLoggerActor],"mpllogger")
       sender ! true
     }
     case Shutdown() => {

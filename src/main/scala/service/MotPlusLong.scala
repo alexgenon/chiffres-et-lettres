@@ -1,6 +1,9 @@
 package service
-import akka.actor.{ Actor, ActorLogging }
-import scala.util.Try
+import akka.actor.{ Actor, ActorLogging, ActorSystem }
+import akka.pattern.{ask,pipe}
+import scala.util.{Try,Success}
+import scala.annotation.tailrec
+import core.DefaultTimeout
 import core.SparkConfig._
 import org.apache.spark.rdd.RDD
 import util.MultiSet
@@ -10,8 +13,17 @@ import util.MultiSet
  */
 object MPLSolver {
   case class Input(l: String)
-  case class ReIndex()
-
+  case class SolStats(challenge:String,nbBuckets:Long,nbCandidates:Long,nbSolutions: Int){
+    override def toString = s"$challenge received, had $nbBuckets buckets with a total of $nbCandidates candidates $nbSolutions are solutions"
+    def toCSV = s"$challenge;$nbBuckets;$nbCandidates;$nbSolutions\n"
+  }
+  case object ReIndex
+  case object DetailedStats
+  case object Stats
+  
+  val KEYSIZE = 5
+  val WORDLIMIT = 10
+  
   // Some utility functions to manipulate words
   object Word extends Serializable {
     import scala.util.matching.Regex
@@ -27,38 +39,85 @@ object MPLSolver {
       candidates.containsAll(normalize(w).toList)
 
   }
-  var dictGrouped:RDD[(List[Char], scala.collection.immutable.Set[String])] = null
+  var dictGrouped: RDD[(List[Char], scala.collection.immutable.Set[String])] = null
+  var dict: RDD[String] = null
 }
 trait MPLSolver {
   import MPLSolver._
+  
   def reindex = {
-    val dict = sparkContext.textFile("src/main/resources/liste_francais.txt").filter(x => x.length>=5 && x.length<=10)
-    val dict5 = dict.flatMap(w => Word.toMultiSet(w).combinations(5).map(t => (t,w)))
-    dictGrouped = dict5.aggregateByKey(Set[String]())((s,w) => s+w,(s1,s2) => s1++s2)
+    dict = sparkContext.textFile("src/main/resources/liste_francais.txt").filter(x => x.length >= KEYSIZE && x.length <= WORDLIMIT)
+    val dict5 = dict.flatMap(w => Word.toMultiSet(w).combinations(KEYSIZE).map(t => (t, w)))
+    dictGrouped = dict5.aggregateByKey(Set[String]())((s, w) => s + w, (s1, s2) => s1 ++ s2)
     dictGrouped.persist
   }
-  def solve(c:String):List[String] = {
-     val cSet = MultiSet(Word.normalize(c).toList)
-     val cTuples = cSet.combinations(5).toSet
-     val candidates = dictGrouped.filter(x => cTuples.contains(x._1))
-     candidates.flatMap(_._2).filter(w => Word.canBeEncoded(w,cSet)).collect
-       .toList.sorted(Ordering[Int].on[String](_.length).reverse).distinct
+  
+  def solve(c: String): (List[String],SolStats) = {
+    val cSet = MultiSet(Word.normalize(c).toList)
+    val cTuples = cSet.combinations(KEYSIZE).toSet
+    val candidates = dictGrouped.filter(x => cTuples.contains(x._1))
+    val nbBuckets = candidates.count
+    val wordCandidates = candidates.flatMap(_._2)
+    val nbCandidates = wordCandidates.count
+    val solutions = wordCandidates.filter(w => Word.canBeEncoded(w, cSet)).collect
+      .toList.sorted(Ordering[Int].on[String](_.length).reverse).distinct
+    (solutions,SolStats(c,nbBuckets,nbCandidates,solutions.size))
+  }
+  
+  def stats: Map[String, String] = {
+    def choose(n1: Int, n2: Int): Int = {
+      @tailrec
+      def mult(n1: Int, n2: Int, acc: Int = 1): Int = {
+        if (n1 <= n2) acc * n2
+        else mult(n1 - 1, n2, acc * n1)
+      }
+      val max = scala.math.max(n2, n1 - n2)
+      val min = n1 - max
+      mult(n1,max+1) / mult(min,1)
+    }
+    val sizes = dictGrouped.map(t => (t._1, t._2.size))
+    val maxB = sizes.max()(Ordering[Int].on[((List[Char]), Int)](_._2))
+    val avgB = sizes.aggregate(0)((s, t) => s + t._2, (s1, s2) => s1 + s2).toDouble / sizes.count
+    Map("dictionnary_size" -> dict.count.toString,
+      "bucket_key_size" -> KEYSIZE.toString,
+      "bucket_key_combinations" -> choose(26,5).toString,
+      "buckets_count" -> sizes.count.toString,
+      "buckets_max" -> maxB.toString,
+      "buckets_average" -> avgB.toString)
   }
 }
 
-class MotPlusLongActor extends Actor with ActorLogging with MPLSolver {
+class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with MPLSolver {
   import MPLSolver._
+  import scala.concurrent.ExecutionContext.Implicits.global
+  val loggerActor = core.Boot.system.actorSelection("/user/gds/mpllogger")
+  
   override def preStart = {
     reindex
   }
   def receive: Receive = {
+    case ReIndex => {
+      log.info("Received request for reindexing")
+      reindex
+    }
     case Input(c) => {
       log.info(s"""Received $c as input""")
-      sender ! solve(c) 
+      val (solution,stats) = solve(c)
+      loggerActor ! stats
+      sender ! solution
     }
-    case ReIndex() => {
-      log.info("""Received request for reindexing""")
-      reindex
+    case Stats => {
+      log.info("Received stats request")
+      import scala.concurrent.Future
+      val ourStats = stats
+      val theirStats = (loggerActor ? Stats).mapTo[Map[String,String]]
+      val loggedStats = theirStats map {
+        case s => ourStats ++ s
+      }
+      loggedStats pipeTo (sender)
+    }
+    case _ => {
+      log.error("Unknown message received")
     }
   }
 }

@@ -1,0 +1,23 @@
+@()
+
+@js(src: String) = {
+<script type="text/javascript" src="@src"></script>
+}
+
+@css(src: String) = {
+<link rel="stylesheet" href="@src">
+}
+
+<html>
+  <head>
+    <title>Statistics on "Le mot le plus long"</title>
+
+    <script data-main="/js/main.js" type="text/javascript" src="/webjars/requirejs/2.1.17/require.min.js"></script>
+    <script type="text/javascript" src="/webjars/jquery/2.1.4/jquery.min.js"></script>
+    @css("/css/main.css")
+    <link rel="stylesheet" media="screen" href="/webjars/bootstrap/3.3.4/css/bootstrap.css")" />
+  </head>
+  <body>
+    Coucou gamin !
+  </body>
+</html>
