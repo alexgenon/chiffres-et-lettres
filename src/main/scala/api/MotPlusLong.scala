@@ -65,8 +65,26 @@ class MotPlusLongApi(implicit val actorSystem: ActorSystem) extends Directives w
       }
     }
   }
+  
+  val dictionnary = pathPrefix("dictionnary") {
+    path("[a-zA-Z]+".r) { word =>
+      post{
+        complete {
+          solverActor ! NewWord(word)
+          "Word added successfully"
+        }
+      }
+    } ~
+    pathEnd {
+      get {
+        complete {
+          "ok"
+        }
+      }
+    }
+  }
 
   val routes = pathPrefix("mpl") {
-    reindex ~ solve  ~ stats
+    reindex ~ solve  ~ stats ~ dictionnary
   }
 }

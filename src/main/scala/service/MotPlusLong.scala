@@ -1,12 +1,14 @@
 package service
-import akka.actor.{ Actor, ActorLogging, ActorSystem }
-import akka.pattern.{ask,pipe}
-import scala.util.{Try,Success}
-import scala.annotation.tailrec
 import core.DefaultTimeout
 import core.SparkConfig._
-import org.apache.spark.rdd.RDD
 import util.MultiSet
+import akka.actor.{ Actor, ActorLogging, ActorSystem }
+import akka.pattern.{ask,pipe}
+import akka.event.LoggingReceive
+import scala.util.{Try,Success}
+import scala.annotation.tailrec
+import org.apache.spark.rdd.RDD
+import java.io.FileWriter
 
 /**
  * @author alexandregenon
@@ -20,6 +22,7 @@ object MPLSolver {
   case object ReIndex
   case object DetailedStats
   case object Stats
+  case class NewWord(w:String)
   
   val KEYSIZE = 5
   val WORDLIMIT = 10
@@ -42,6 +45,7 @@ object MPLSolver {
   var dictGrouped: RDD[(List[Char], scala.collection.immutable.Set[String])] = null
   var dict: RDD[String] = null
 }
+
 trait MPLSolver {
   import MPLSolver._
   
@@ -80,7 +84,7 @@ trait MPLSolver {
     val avgB = sizes.aggregate(0)((s, t) => s + t._2, (s1, s2) => s1 + s2).toDouble / sizes.count
     Map("dictionnary_size" -> dict.count.toString,
       "bucket_key_size" -> KEYSIZE.toString,
-      "bucket_key_combinations" -> choose(26,5).toString,
+      "bucket_key_combinations" -> choose(26,KEYSIZE).toString,
       "buckets_count" -> sizes.count.toString,
       "buckets_max" -> maxB.toString,
       "buckets_average" -> avgB.toString)
@@ -95,7 +99,7 @@ class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with 
   override def preStart = {
     reindex
   }
-  def receive: Receive = {
+  def receive: Receive = LoggingReceive {
     case ReIndex => {
       log.info("Received request for reindexing")
       reindex
@@ -109,12 +113,18 @@ class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with 
     case Stats => {
       log.info("Received stats request")
       import scala.concurrent.Future
-      val ourStats = stats
       val theirStats = (loggerActor ? Stats).mapTo[Map[String,String]]
+      val ourStats = stats
       val loggedStats = theirStats map {
         case s => ourStats ++ s
       }
       loggedStats pipeTo (sender)
+    }
+    case NewWord(w) => {
+      log.info(s"Request to add $w to dictionnary")
+      val dictFile = new FileWriter("src/main/resources/liste_francais.txt",true)
+      dictFile.write("\n"+w)
+      dictFile.close
     }
     case _ => {
       log.error("Unknown message received")

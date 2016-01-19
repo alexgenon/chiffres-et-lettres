@@ -1,11 +1,12 @@
 package service
+import core.SparkConfig._
+import util.MultiSet
 import akka.actor.{ Actor, ActorLogging }
+import akka.event.LoggingReceive
 import scala.util.Try
 import scala.annotation.tailrec
-import java.io._
-import core.SparkConfig._
+import java.io.FileWriter
 import org.apache.spark.rdd.RDD
-import util.MultiSet
 
 /**
  * @author alexandregenon
@@ -24,7 +25,7 @@ class MotPlusLongLoggerActor extends Actor with ActorLogging with MotPlusLongLog
   import MPLSolver._
   val logFile = new FileWriter("challenges.log",true)
   
-  def receive: Receive = {
+  def receive: Receive = LoggingReceive {
     case m:SolStats => {
       log.info(s"""Received ${m.toString} to log""")
       logFile.write(m.toCSV)

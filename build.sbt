@@ -12,11 +12,15 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= {
-  val akkaVersion  = "2.3.10"
+  val akkaVersion  = "2.4.1"
+  val akkaStreamVersion = "2.0.2"
   val sprayVersion = "1.3.3"
   val sparkVersion = "1.3.0"
   Seq(
     "com.typesafe.akka"  %%  "akka-actor"             % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream-experimental" % akkaStreamVersion,
+	"com.typesafe.akka" %% "akka-http-core-experimental" % akkaStreamVersion,
+	"com.typesafe.akka" %% "akka-http-experimental" % akkaStreamVersion,
     "io.spray"           %%  "spray-can"              % sprayVersion,
     "io.spray"           %%  "spray-routing"          % sprayVersion,
     "io.spray"           %%  "spray-json"             % "1.3.1",
