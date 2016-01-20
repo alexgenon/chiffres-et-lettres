@@ -1,19 +1,21 @@
 package api
 
 import core.DefaultTimeout
-import akka.actor.ActorSystem
-import spray.routing.Directives
-import spray.httpx.TwirlSupport
-import spray.json._
-import akka.pattern.ask
-import scala.util.{ Try}
 import service.CEBSolver._
+
+import scala.util.{ Try}
+import akka.actor.ActorSystem
+import akka.pattern.ask
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import spray.json._
 
 /**
  * @author alexandregenon
  */
 
-object CEBJSonProtocol extends Marshalling {
+object CEBJSonProtocol extends SprayJsonSupport with DefaultJsonProtocol {
 
   implicit object StepFormat extends RootJsonFormat[Step] {
     def write(s: Step) = JsObject(("left", JsNumber(s.left)), ("op", JsString(s.op.toString)), ("right", JsNumber(s.right)))

@@ -1,10 +1,38 @@
 package api
 
+import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
+import akka.http.scaladsl.model.MediaTypes._
+import akka.http.scaladsl.model.ContentType
+import twirl.api.{ Xml, Txt, Html }
+import akka.http.scaladsl.model.MediaType
 
+object TwirlSupport extends TwirlSupport
+
+trait TwirlSupport {
+
+  /** Serialize Twirl `Html` to `text/html`. */
+  implicit val twirlHtmlMarshaller = twirlMarshaller[Html](`text/html`)
+
+  /** Serialize Twirl `Txt` to `text/plain`. */
+  implicit val twirlTxtMarshaller = twirlMarshaller[Txt](`text/plain`)
+
+  /** Serialize Twirl `Xml` to `text/xml`. */
+  implicit val twirlXmlMarshaller = twirlMarshaller[Xml](`text/xml`)
+
+  /** Serialize Twirl formats to `String`. */
+  protected def twirlMarshaller[A <: AnyRef: Manifest](contentType: MediaType): ToEntityMarshaller[A] =
+    Marshaller.StringMarshaller.wrap(contentType)(_.toString)
+
+}
+
+/*
 import spray.http.{ HttpEntity, StatusCode }
-import spray.httpx.SprayJsonSupport
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import spray.json._
 import spray.httpx.marshalling.{ MetaMarshallers, CollectingMarshallingContext, ToResponseMarshaller, Marshaller }
 import spray.json.DefaultJsonProtocol
+
+
 
 /**
   * Case class that represents an Error inside the application
@@ -34,4 +62,6 @@ trait Marshalling extends DefaultJsonProtocol with SprayJsonSupport with MetaMar
         (200, mb(b, context))
     }
   }
-}
+}*/
+
+

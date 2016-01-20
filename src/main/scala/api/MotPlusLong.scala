@@ -1,20 +1,24 @@
 package api
+
 import core.DefaultTimeout
-import akka.actor.ActorSystem
-import spray.routing.Directives
-import spray.httpx.TwirlSupport
-import spray.json._
-import akka.pattern.ask
+import service.MPLSolver._
+
 import scala.util.matching.Regex
 import scala.util.Try
-import service.MPLSolver._
+import akka.actor.ActorSystem
+import akka.pattern.ask
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import spray.json._
+
+
 
 /**
  * @author alexandregenon
  */
-object MPLJSonProtocol extends Marshalling {
-
-  implicit object Solutions extends RootJsonFormat[List[String]] {
+object MPLJSonProtocol extends SprayJsonSupport with DefaultJsonProtocol  {
+  implicit object Solutions  {
     def write(sols: List[String]) = JsArray(sols.map(JsString(_)).toVector)
     def read(v: JsValue) = ???
   }
@@ -52,7 +56,7 @@ class MotPlusLongApi(implicit val actorSystem: ActorSystem) extends Directives w
     path("ui") {
       get {
         complete {
-          html.mpl_stats()
+         html.mpl_stats()
         }
       }
     }
