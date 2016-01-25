@@ -72,7 +72,7 @@ define(function(require) {
         <form className="mplForm" onSubmit={this.handleSubmit}>
 			<div>
 			{inputsArray.map(function(i,x) {
-				return (<input size="1" maxlength="1" value={appThis.state.letters[i-1]} key={i} onChange={appThis.onInputChange.bind(null,i)}/>);
+				return (<input size="1" maxLength="1" value={appThis.state.letters[i-1]} key={i} onChange={appThis.onInputChange.bind(null,i)}/>);
 			})}
 			</div>
 			<input type="submit" value="Find words" />
@@ -102,7 +102,7 @@ define(function(require) {
   
   
   MplApp.init = function () {
-      React.render(<MplApp/>, document.getElementById('mpl'));
+      React.render(<MplApp/>, document.getElementById('mplApp'));
   };
 
   return MplApp;

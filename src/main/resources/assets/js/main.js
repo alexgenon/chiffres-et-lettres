@@ -41,6 +41,11 @@
     console.log(err);
   };
   
+  require(['jsx!app_menu'],function(AppMenu) {
+	  console.log("init App Menu");
+	  AppMenu.init();
+  });
+  
   require(['jsx!cbe_app'], function(CbeApp) {
 	  console.log('init Compte est bon app');
 	  CbeApp.init();

@@ -123,7 +123,7 @@ define(function(require) {
   });
   
   CbeApp.init = function () {
-      React.render(<CbeApp/>, document.getElementById('ceb'));
+      React.render(<CbeApp/>, document.getElementById('cebApp'));
   };
 
   return CbeApp;

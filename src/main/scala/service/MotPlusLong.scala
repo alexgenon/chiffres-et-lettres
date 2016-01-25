@@ -2,6 +2,7 @@ package service
 import core.DefaultTimeout
 import core.SparkConfig._
 import util.MultiSet
+import util.Word
 import akka.actor.{ Actor, ActorLogging, ActorSystem }
 import akka.pattern.{ask,pipe}
 import akka.event.LoggingReceive
@@ -26,31 +27,16 @@ object MPLSolver {
   
   val KEYSIZE = 5
   val WORDLIMIT = 10
-  
-  // Some utility functions to manipulate words
-  object Word extends Serializable {
-    import scala.util.matching.Regex
-    def normalize(s: String) = {
-      s.toLowerCase.replaceAll("[è,é,ê,ë]", "e").replaceAll("[à,á,â,ã,ä]", "a").replaceAll("ç", "c")
-        .replaceAll("[ì,í,î,ï]", "i").replaceAll("[ò,ó,ô,õ,ö]", "o").replaceAll("ñ", "n")
-        .replaceAll("[ù,ú,û,ü]", "u").replaceAll("[ý,ÿ]", "y").replaceAll("[^a-z]", "")
-    }
-    def toMultiSet(s: String) = MultiSet(normalize(s).toList)
-    def isAlphaPair(t: (Char, Char)): Boolean = (t._1 >= 'a' && t._1 <= 'z' && t._2 >= 'a' && t._2 <= 'z')
-
-    def canBeEncoded(w: String, candidates: MultiSet[Char]): Boolean =
-      candidates.containsAll(normalize(w).toList)
-
-  }
   var dictGrouped: RDD[(List[Char], scala.collection.immutable.Set[String])] = null
   var dict: RDD[String] = null
 }
 
-trait MPLSolver {
+trait MPLSolver{
   import MPLSolver._
+  implicit val dictFilename:String
   
   def reindex = {
-    dict = sparkContext.textFile("src/main/resources/liste_francais.txt").filter(x => x.length >= KEYSIZE && x.length <= WORDLIMIT)
+    dict = sparkContext.textFile(dictFilename).filter(x => x.length >= KEYSIZE && x.length <= WORDLIMIT)
     val dict5 = dict.flatMap(w => Word.toMultiSet(w).combinations(KEYSIZE).map(t => (t, w)))
     dictGrouped = dict5.aggregateByKey(Set[String]())((s, w) => s + w, (s1, s2) => s1 ++ s2)
     dictGrouped.persist
@@ -94,6 +80,7 @@ trait MPLSolver {
 class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with MPLSolver {
   import MPLSolver._
   import scala.concurrent.ExecutionContext.Implicits.global
+  implicit val dictFilename = "src/main/resources/liste_francais.txt"
   val loggerActor = core.Boot.system.actorSelection("/user/gds/mpllogger")
   
   override def preStart = {
@@ -122,7 +109,7 @@ class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with 
     }
     case NewWord(w) => {
       log.info(s"Request to add $w to dictionnary")
-      val dictFile = new FileWriter("src/main/resources/liste_francais.txt",true)
+      val dictFile = new FileWriter(dictFilename,true)
       dictFile.write("\n"+w)
       dictFile.close
     }

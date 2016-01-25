@@ -15,21 +15,22 @@ import core.SparkConfig._
 class MotPlusLongActorSpec extends Specification with MPLSolver{
  sequential
  
+ implicit val dictFilename = "src/test/resources/test_dict.txt"
  import scala.concurrent.ExecutionContext.Implicits.global
  
  reindex
  val noluck = "zrtohzp"
  s"No word for $noluck" >> {
-   solve(noluck).isEmpty must_== true
+   solve(noluck)._1.isEmpty must_== true
  }
  
- val shouldwork = "AOPRIUTNR".toLowerCase
- s"Expects 136 results for $shouldwork" >> {
+ val shouldwork = "gpanrede".toLowerCase
+ s"Expects 2 results for $shouldwork" >> {
    val solutions = solve(shouldwork)
-   val solutionsGrouped = solutions.groupBy(_.length)
+   val solutionsGrouped = solutions._1.groupBy(_.length)
    println(s"""Solutions for $shouldwork""")
    solutionsGrouped.foreach {case (n,l) => println(s"""$n : ${l.mkString(",")}""")}
-   solutions.size must_== 136
+   solutions._1.size must_== 2
  }
 }
 
