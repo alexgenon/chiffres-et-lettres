@@ -1,6 +1,7 @@
 package service
 
-import akka.actor.{ Actor, ActorLogging }
+import akka.actor.Actor
+import akka.event.LoggingReceive
 import scala.util.{Try,Success,Failure}
 import util.MultiSet
 /**
@@ -104,15 +105,21 @@ trait CEBSolver{
   }
 }
 
-class CompteEstBonActor extends Actor with ActorLogging with CEBSolver {
+class CompteEstBonActor extends Actor with CEBSolver {
 
   import CEBSolver._
+  val liveLoggerActor = core.Boot.system.actorSelection("/user/gds/livelogger")
   
-  def receive: Receive = {
+  def receive: Receive = LoggingReceive {
     case Input(goal,numbers) => {
-      log.info(s"""Received challenge for $goal with numbers ${numbers.mkString(",")}""")
       val solution = Try{(new Solver(numbers,goal)).solve.head}
       sender ! solution
+      
+      val logMess =s"""
+        Received challenge for $goal with numbers ${numbers.mkString(",")}
+        Solution is ${solution.toString}
+      """
+      liveLoggerActor ! logMess
     }
   }
 }

@@ -79,6 +79,7 @@ trait MPLSolver{
 
 class MotPlusLongActor extends Actor with ActorLogging with DefaultTimeout with MPLSolver {
   import MPLSolver._
+  
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val dictFilename = "src/main/resources/liste_francais.txt"
   val loggerActor = core.Boot.system.actorSelection("/user/gds/mpllogger")

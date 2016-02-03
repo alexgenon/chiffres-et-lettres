@@ -24,10 +24,12 @@ trait MotPlusLongLogger {
 class MotPlusLongLoggerActor extends Actor with ActorLogging with MotPlusLongLogger{
   import MPLSolver._
   val logFile = new FileWriter("challenges.log",true)
+  val liveLoggerActor = core.Boot.system.actorSelection("/user/gds/livelogger")
   
   def receive: Receive = LoggingReceive {
     case m:SolStats => {
       log.info(s"""Received ${m.toString} to log""")
+      liveLoggerActor ! m
       logFile.write(m.toCSV)
       logFile.flush()
     }

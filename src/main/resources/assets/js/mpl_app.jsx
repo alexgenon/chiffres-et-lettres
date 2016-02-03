@@ -1,6 +1,11 @@
 define(function(require) {
 
   'use strict';
+  var React = require('react');
+  var ReactDOM = require('react-dom');
+  var ReactBootstrap = require('react-bootstrap');
+  var Button = ReactBootstrap.Button; 
+  
   function randomConsonant() {
   	let consonnants='bcdfghjklmnpqrstvwxz';
 	return consonnants[Math.round(Math.random() * (consonnants.length))]; 
@@ -10,10 +15,7 @@ define(function(require) {
 	let vowels = 'aeiouy';
 	return vowels[Math.round (Math.random()*(vowels.length))];
   }
-
-
-  var React = require('react');
-
+  
   var MplApp = React.createClass({
   	getInitialState: function() {
   		return {};
@@ -75,7 +77,7 @@ define(function(require) {
 				return (<input size="1" maxLength="1" value={appThis.state.letters[i-1]} key={i} onChange={appThis.onInputChange.bind(null,i)}/>);
 			})}
 			</div>
-			<input type="submit" value="Find words" />
+			<Button type="submit">Find words</Button>
         </form>
         </div>
       );
@@ -84,15 +86,15 @@ define(function(require) {
   
   var MplSolution = React.createClass({
   	render: function() {
-  		if(typeof this.props.solution === 'undefined')
+  		if(typeof this.props.solutions === 'undefined')
   			return (<div/>);
   		else 
 	  		return(
 	  			<div>
 		  			<h2>Solutions</h2>
 		  			<ol className="solution">
-		  				{this.props.solution.map(function(w) {
-		  					return (<li>w</li>);
+		  				{this.props.solutions.map(function(w,i) {
+		  					return (<li key={i}>{w}</li>);
 		  				})}
 	  				</ol>
 				</div>
@@ -102,7 +104,7 @@ define(function(require) {
   
   
   MplApp.init = function () {
-      React.render(<MplApp/>, document.getElementById('mplApp'));
+      ReactDOM.render(<MplApp/>, document.getElementById('mplApp'));
   };
 
   return MplApp;

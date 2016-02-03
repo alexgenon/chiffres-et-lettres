@@ -1,6 +1,9 @@
 define(function(require) {
 
   'use strict';
+  var React = require('react');
+  var ReactDOM = require('react-dom');
+
   var possInput = [1,2,3,4,5,6,7,8,9,10,25,50,75];
   
   function randomChallenge() {
@@ -12,8 +15,7 @@ define(function(require) {
   	return {goal:goal, input:inputs};
   }
   
-  var React = require('react');
-
+  
   var CbeApp = React.createClass({
   	getInitialState: function() {
   		return {result:{}};
@@ -94,8 +96,8 @@ define(function(require) {
 	  			<div>
 		  			<h2>Solution</h2>
 		  			<div className="solution">
-		  				{this.props.solution.map(function(s) {
-		  					return (<SolStep key={s} step={s}/>);
+		  				{this.props.solution.map(function(s,i) {
+		  					return (<SolStep key={"step"+i} step={s}/>);
 		  				})}
 	  				</div>
 				</div>
@@ -123,7 +125,7 @@ define(function(require) {
   });
   
   CbeApp.init = function () {
-      React.render(<CbeApp/>, document.getElementById('cebApp'));
+      ReactDOM.render(<CbeApp/>, document.getElementById('cebApp'));
   };
 
   return CbeApp;

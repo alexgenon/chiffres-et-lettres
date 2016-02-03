@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.Props
 import akka.util.Timeout
-import api.{CompteEstBonApi,MotPlusLongApi,UI}
+import api.{CompteEstBonApi,MotPlusLongApi,UI,LiveLoggerApi}
 import akka.http.scaladsl.server.Directives._
 
 import scala.util.control.NonFatal
@@ -27,7 +27,7 @@ class ApplicationApiActor(route: Route) extends HttpServiceActor with CustomErro
 trait Api {
   this: BootSystem =>
 
-  val routes = new CompteEstBonApi().routes ~ new MotPlusLongApi().routes ~ new UI().routes
+  val routes = new CompteEstBonApi().routes ~ new MotPlusLongApi().routes ~ new UI().routes ~ new LiveLoggerApi().routes
 }
 
 /**
