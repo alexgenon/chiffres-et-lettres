@@ -9,7 +9,7 @@ The web server is based on akka and akka-http. akka-http is used for defining bo
 Each request to a UI page is rendered using a Twirl template that basically calls the appropriate application written using Reactjs. 
 The main idea here is to use Twirl for the general layout (menu, different components) and use Reactjs to define each individual app.
 
-As for the Rest API, each request is processed by a dedicated Actor. So far, 3 actors are needed (defined in `service` package) :
+As for the Rest API, each request is processed by a dedicated Actor. So far, the actors below are needed (defined in `service` package) :
 * Actor solving "le Compte est bon"
 * Actor solving "Mot plus long"
 * Actor logging stats on the processing of "Mot plus long" solver
@@ -40,7 +40,7 @@ Each request performed to any of the actor would be displayed live in the UI.
 
 On the UI side, there is a ReactJS component in charge of opening a WebSocket to the server and displaying all the messages sent.
 
-On the server side, a dedicated router is defined using `handleWebsocketMessages`. The akka flow defined to process the WebSocket requests  
+On the server side, a dedicated route is defined using `handleWebsocketMessages`. The akka flow defined to process the WebSocket requests 
 simply forwards the messages to/from the Livelogging actor. The Livelogging actor also receives messages from other actors that it then send 
 to the WebSocket, via the materialized flow.
 
@@ -49,7 +49,7 @@ to the WebSocket, via the materialized flow.
 activator run
 ```
 
-this application uses sbt-revolver, which allows you to hot-deploy spray using
+this application uses sbt-revolver, which allows you to hot-deploy using
 
 ```
 activator> ~ re-start
